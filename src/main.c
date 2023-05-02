@@ -18,8 +18,6 @@ int main(int argc, char **argv){
         printf("%s (i = %d)", argv[i], i);
     }
     printf("\n");
-    
-    //commit
 
     printf("argc = %d \n", argc);
     
