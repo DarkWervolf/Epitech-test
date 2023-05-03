@@ -33,28 +33,37 @@ int check_left(int* x, int* y, int gsize, char* line, char letter, int* checked_
     return 0;
 }
 
-void find_first_letter(int start_x, int start_y, int* x, int* y, int gsize, char* line, char* word)
+/*
+    Finds first letter in line(=grid)
+    - if found
+        - changes x and y to first letter's coord
+        - returns 1
+    - if not found
+        - x and y are changed to gsize-1
+        - returns 0
+*/
+int find_first_letter(int start_x, int start_y, int* x, int* y, int gsize, char* line, char* word)
 {
     *x = start_x;
     *y = start_y;
-    bool found = false;
+    int found = 0;
 
-    while (1){
+    while (!found){
         if (line[letter_position(*x, *y, gsize)] == word[0]){
-            found = true;
+            found = 1;
             break;
         }
-        else {
-            if (*y < gsize)
-                *y = *y + 1;       
-            else if (*x < gsize) {
-                *x = *x + 1;
-                *y = 0;
-            }
+        if (*y < (gsize - 1))
+            *y = *y + 1;       
+        else if (*x < (gsize - 1)) {
+            *x = *x + 1;
+            *y = 0;
         }
+        else if (*x >= gsize-1 && *y >= gsize-1){
+            return 0;
+        } 
     }
-
-    // instead of return, it changes x and y
+    return found;
 }
 
 /*
@@ -144,9 +153,9 @@ int find_next_letter(int* x, int* y, int gsize, char* line, char letter, int* ch
         2. It looks around (up, down, left, right) in possible directions and tries to find second letter
         3. If it succeeds - it moves to that letter and repeats 2, till the whole word is found.
         4. If not, it gets one step back and tries to find another letter, but not the one, used before.
-            So if we have 2 'e' around letter 't', we first check one, and if we couldn't find anything around it, we come back,
-            exclude this first 'e' and check the second 'e'
-        5. If we come back to the first letter, we
+            So if we have 2 'e' around letter 't', we first check one, and if we couldn't find 
+            anything around it, we come back, exclude this first 'e' and check the second 'e'.
+        5. If we come back to the first letter, we search different paths or change first letter
 */
 int word_finder(int gsize, int word_size, char* line, char* word)
 {
@@ -154,8 +163,7 @@ int word_finder(int gsize, int word_size, char* line, char* word)
     for (int i = 0; i < gsize * gsize; i++)
         checked_letters[i] = 0;
 
-    int x;
-    int y;
+    int x; int y;
     
     find_first_letter(0, 0, &x, &y, gsize, line, word);
 
@@ -176,19 +184,24 @@ int word_finder(int gsize, int word_size, char* line, char* word)
                 line[letter_position(history_x[l], history_y[l], gsize)] = 
                     toupper(line[letter_position(history_x[l], history_y[l], gsize)]);
             }
+            free(history_x);
+            free(history_y);
+            free(checked_letters);
             return 1;
         }
 
-        find_next_letter(&x, &y, gsize, line, word[i], checked_letters);
-
-        // if no one 'if' worked => next letter is not found
-        if (line[letter_position(x, y, gsize)] != word[i]){
+        if (!find_next_letter(&x, &y, gsize, line, word[i], checked_letters)){
+            // shift back to previous letter
             i = i - 1;
+            // marking checked letters, but only the last one is "bad"
             checked_letters[letter_position(x, y, gsize)] = 1;
             for (int k = letter_position(x, y, gsize) + 1; k < sizeof(checked_letters); k++){
                 checked_letters[k] = 0;
             }
+
+            // if we returned back to the first letter 
             if (i == 0){
+                // check other paths. if none, find next first letter
                 if (!find_next_letter(&x, &y, gsize, line, word[i], checked_letters)){
                     if (y < gsize)
                         y++;       
@@ -196,7 +209,14 @@ int word_finder(int gsize, int word_size, char* line, char* word)
                         x++;
                         y = 0;
                     }
-                    find_first_letter(x, y, &x, &y, gsize, line, word);
+                    // if we returned back to the last letter
+                    // => none of first letters has right paths
+                    if (!find_first_letter(x, y, &x, &y, gsize, line, word)){
+                        free(history_x);
+                        free(history_y);
+                        free(checked_letters);
+                        return 0;
+                    }
                 }
                 else {
                     continue;
@@ -209,6 +229,10 @@ int word_finder(int gsize, int word_size, char* line, char* word)
             }
         }
     }
+
+    free(history_x);
+    free(history_y);
+    free(checked_letters);
 
     return 1;
 }
