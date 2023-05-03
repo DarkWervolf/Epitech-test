@@ -101,12 +101,8 @@ int main(int argc, char **argv){
     char * word;
 
     while (strcmp(input, "0")){
-        // printf("Searching... %s %s %d\n", &line, input, word_size);
-        // printf("123\n");
-        // word_finder(gsize, word_size, &line, input);
         if (word_finder(gsize, word_size, &line, input)){
             print_grid(gsize, &line);
-            // printf("found \n");
         }
         else {
             printf("The word %s is not in the grid\n", input);
@@ -118,47 +114,5 @@ int main(int argc, char **argv){
         word_size = get_word_size(input);
     }
     
-
-    
-    //transforming line to grid
-    // char word[] = "noob";
-    // int word_size = sizeof(word) - 1;
-    
-    
-
-    // defining found letters
-    /*
-    int found_letters[word_size];
-    for(int i = 0; i < word_size; i++){
-        found_letters[i] = 0;
-    }
-
-    for (int l = 0; l < word_size; l++){
-        for(int i = 0; i < gsize; i++){
-            for(int j = 0; j < gsize; j++){
-                if (line[letter_position(i, j, gsize)] == word[l]){
-                    found_letters[l] = 1;
-                }
-            }
-        }
-    }
-
-    for(int i = 0; i < word_size; i++){
-        if (found_letters[i] == 0){
-            printf("The word %s is not in the grid\n", word);
-            return 0;
-        }
-    }
-    */
-    /*
-    if (word_finder(gsize, word_size, &line, &word)){
-        print_grid(gsize, &line);
-    }
-    else {
-        printf("The word %s is not in the grid\n", word);
-        return 0;
-    }
-    */
     return 0;
-    
 }
